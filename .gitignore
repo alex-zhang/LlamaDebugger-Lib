@@ -1,6 +1,5 @@
 .DS_Store
 Thumbs.db
-*.swc
 *.stackdump
 ._*
 *.local.properties
