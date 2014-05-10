@@ -21,7 +21,7 @@
  * 	07.12.13		1.0		Mr.doob			+ First version
  **/
 
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
     import flash.display.Bitmap;
     import flash.display.BitmapData;
@@ -56,7 +56,8 @@ package com.fireflyLib.debug
 
         private function onAddedToStage(e:Event):void
         {
-            removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+            this.removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+			this.addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
 
             graphics.beginFill(0x33);
             graphics.drawRect(0, 0, 65, 40);
@@ -111,6 +112,17 @@ package com.fireflyLib.debug
             addEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
             addEventListener(Event.ENTER_FRAME, update);
         }
+		
+		private function onRemovedFromStage(event:Event):void
+		{
+			removeEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
+			addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+			
+			removeEventListener(MouseEvent.CLICK, onClick);
+			removeEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
+			removeEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
+			removeEventListener(Event.ENTER_FRAME, update);
+		}
 
         private function onClick(event:MouseEvent):void
         {

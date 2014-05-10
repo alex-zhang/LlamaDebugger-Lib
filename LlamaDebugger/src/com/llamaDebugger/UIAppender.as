@@ -1,8 +1,6 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
 	import com.fireflyLib.utils.GlobalPropertyBag;
-	import com.fireflyLib.debug.Console;
-	import com.fireflyLib.debug.ILogAppender;
 	
 	import flash.events.KeyboardEvent;
 
@@ -43,10 +41,10 @@ package com.fireflyLib.debug
 				}
 			}
 		}
-  
-		public function addLogMessage(level:String, loggerName:String, message:String):void
+		
+		public function addLogMessage(logEntry:LogEntry):void
 		{
-			mLogViewer.addLogMessage(level, loggerName, message);
+			mLogViewer.addLogMessage(logEntry);
 		}
 	}
 }

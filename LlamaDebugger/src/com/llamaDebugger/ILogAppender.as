@@ -1,7 +1,7 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
 	public interface ILogAppender
 	{
-		function addLogMessage(level:String, loggerName:String, message:String):void;
+		function addLogMessage(entry:LogEntry):void;
 	}
 }

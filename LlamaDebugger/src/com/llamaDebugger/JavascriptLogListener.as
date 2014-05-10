@@ -1,7 +1,5 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
-    import com.fireflyLib.debug.ILogAppender;
-    
     import flash.external.ExternalInterface;
     
     /**
@@ -14,28 +12,28 @@ package com.fireflyLib.debug
      */
     public class JavascriptLogListener implements ILogAppender
     {
-        public function addLogMessage(level:String, loggerName:String, message:String):void
+        public function addLogMessage(logEntry:LogEntry):void
         {
-			switch(level)
+			switch(logEntry.logType)
 			{
 				case Logger.ERROR:
-					ExternalInterface.call("console.error", loggerName, message);
+					ExternalInterface.call("console.error", logEntry.formatDeepMessage());
 					break;
 				
 				case Logger.WARNING:
-					ExternalInterface.call("console.warn", loggerName, message);
+					ExternalInterface.call("console.warn", logEntry.formatDeepMessage());
 					break;
 				
 				case Logger.DEBUG:
-					ExternalInterface.call("console.debug", loggerName, message);
+					ExternalInterface.call("console.debug", logEntry.formatDeepMessage());
 					break;
 				
 				case Logger.INFO:
-					ExternalInterface.call("console.info", loggerName, message);
+					ExternalInterface.call("console.info", logEntry.formatDeepMessage());
 					break;
 				
 				case Logger.TRACE:
-					ExternalInterface.call("console.trace", loggerName, message);
+					ExternalInterface.call("console.trace", logEntry.formatDeepMessage());
 					break;
 			}
         }

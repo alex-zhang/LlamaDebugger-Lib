@@ -1,6 +1,7 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
 	import com.fireflyLib.utils.TypeUtility;
+	
 
     /**
      * The Logger class provides mechanisms to print and listen for errors, warnings,
@@ -24,35 +25,38 @@ package com.fireflyLib.debug
 		 * 
 		 * @see Logger#printError()
 		 */
-		public static const ERROR:uint = 0x1;
+		public static const ERROR:String = "ERROR";
 		
 		/**
 		 * type given to warnings.
 		 * 
 		 * @see Logger#PrintWarning()
 		 */
-		public static const WARNING:uint = 0x11;
+		public static const WARNING:String = "WARNING";
 		
 		/**
 		 * type given to debug messages.
 		 * 
 		 * @see Logger#PrintDebug()
 		 */
-		public static const DEBUG:uint = 0x111;
+		public static const DEBUG:String = "DEBUG";
 		
 		/**
 		 * type given to warnings.
 		 * 
 		 * @see Logger#PrintInfo()
 		 */
-		public static const INFO:uint = 0x1111;
+		public static const INFO:String = "INFO";
+		
+		/**
+		 * type given to normal messages.
+		 */
+		public static const TRACE:String = "TRACE";
 		
 		/**
 		 * type given to sys inner messages.
 		 */
-		public static const TRACE:uint = 0x11111;
-		
-		public static const CMD:uint = 0x111111;
+		public static const CMD:String = "CMD";
 
 		protected static var listeners:Vector.<ILogAppender> = new Vector.<ILogAppender>();
 		protected static var filters:Vector.<ILogFilter> = new Vector.<ILogFilter>();
@@ -73,6 +77,11 @@ package com.fireflyLib.debug
 		public static function registerFilter(filter:ILogFilter):void
 		{
 			filters.push(filter);
+		}
+		
+		public static function createLogger(reporter:Object):Logger
+		{
+			return new Logger(TypeUtility.getSimpleClassName(reporter));
 		}
         
         /**
@@ -144,29 +153,8 @@ package com.fireflyLib.debug
 			n = listeners.length;
             for(i = 0; i< n; i++)
 			{
-				ILogAppender(listeners[i]).addLogMessage(entry.type, 
-					TypeUtility.getQualifiedClassName(entry.reporter), 
-					entry.message);
+				ILogAppender(listeners[i]).addLogMessage(entry);
 			}
-        }
-        
-        /**
-         * Prints a general message to the log. Log entries created with this method
-         * will have the MESSAGE type.
-         * 
-         * @param reporter The object that reported the message. This can be null.
-         * @param message The message to print to the log.
-         */
-        public static function print(reporter:*, message:String):void
-        {
-            // Early out if we are disabled.
-            if(disabled) return;
-
-            var entry:LogEntry = new LogEntry();
-            entry.reporter = TypeUtility.getClass(reporter);
-            entry.message = message;
-            entry.type = LogEntry.TRACE;
-            processEntry(entry);
         }
         
 		/**
@@ -177,17 +165,12 @@ package com.fireflyLib.debug
 		 * @param method The name of the method that the warning was reported from.
 		 * @param message The warning to print to the log.
 		 */
-		public static function info(reporter:*, method:String, message:String = null):void
+		public static function info(message:String, method:String = null, reporter:String = null):void
 		{
             // Early out if we are disabled.
             if(disabled) return;
 
-            var entry:LogEntry = new LogEntry();
-			entry.reporter = TypeUtility.getClass(reporter);
-			entry.method = method;
-			entry.message = method + " - " + message;
-			entry.type = LogEntry.INFO;
-			processEntry(entry);
+			processEntry(new LogEntry(INFO, message, method, reporter));
 		}
 		
 		/**
@@ -198,18 +181,12 @@ package com.fireflyLib.debug
 		 * @param method The name of the method that the debug message was reported from.
 		 * @param message The debug message to print to the log.
 		 */
-		public static function debug(reporter:*, method:String, message:String = null):void
+		public static function debug(message:String, method:String = null, reporter:String = null):void
 		{
             // Early out if we are disabled.
-            if(disabled)
-                return;
+            if(disabled) return;
 
-            var entry:LogEntry = new LogEntry();
-			entry.reporter = TypeUtility.getClass(reporter);
-			entry.method = method;
-			entry.message = method + " - " + message;
-			entry.type = LogEntry.DEBUG;
-			processEntry(entry);
+			processEntry(new LogEntry(DEBUG, message, method, reporter));
 		}
 		
         /**
@@ -220,18 +197,12 @@ package com.fireflyLib.debug
          * @param method The name of the method that the warning was reported from.
          * @param message The warning to print to the log.
          */
-        public static function warn(reporter:*, method:String, message:String = null):void
+        public static function warn(message:String, method:String = null, reporter:String = null):void
         {
             // Early out if we are disabled.
-            if(disabled)
-                return;
+            if(disabled) return;
 
-            var entry:LogEntry = new LogEntry();
-            entry.reporter = TypeUtility.getClass(reporter);
-            entry.method = method;
-            entry.message = method + " - " + message;
-            entry.type = LogEntry.WARNING;
-            processEntry(entry);
+            processEntry(new LogEntry(WARNING, message, method, reporter));
         }
         
         /**
@@ -242,19 +213,28 @@ package com.fireflyLib.debug
          * @param method The name of the method that the error was reported from.
          * @param message The error to print to the log.
          */
-        public static function error(reporter:*, method:String, message:String = null):void
+        public static function error(message:String, method:String = null, reporter:String = null):void
         {
             // Early out if we are disabled.
-            if(disabled)
-                return;
+            if(disabled) return;
 
-            var entry:LogEntry = new LogEntry();
-            entry.reporter = TypeUtility.getClass(reporter);
-            entry.method = method;
-            entry.message = method + " - " + message;
-            entry.type = LogEntry.ERROR;
-            processEntry(entry);
+			processEntry(new LogEntry(ERROR, message, method, reporter));
         }
+		
+		/**
+		 * Prints a general message to the log. Log entries created with this method
+		 * will have the MESSAGE type.
+		 * 
+		 * @param reporter The object that reported the message. This can be null.
+		 * @param message The message to print to the log.
+		 */
+		public static function print(message:String, method:String = null, reporter:String = null):void
+		{
+			// Early out if we are disabled.
+			if(disabled) return;
+			
+			processEntry(new LogEntry(TRACE, message, method, reporter));
+		}
         
         /**
          * Prints a message to the log. Log enthries created with this method will have
@@ -265,20 +245,14 @@ package com.fireflyLib.debug
          * @param message The message to print to the log.
          * @param type The custom type to give the message.
          */
-        public static function printCustom(reporter:*, method:String, type:String, message:String = null):void
+        public static function printCustom(logType:String, message:String, method:String = null, reporter:String = null):void
         {
             // Early out if we are disabled.
-            if(disabled)
-                return;
-
-            var entry:LogEntry = new LogEntry();
-            entry.reporter = TypeUtility.getClass(reporter);
-            entry.method = method;
-            entry.type = type;
-            entry.message = method + message ? (" - " + message) : "";
-            processEntry(entry);
+            if(disabled) return;
+			
+			processEntry(new LogEntry(logType, message, method, reporter));
         }
-        
+		
         /**
          * Utility function to get the current callstack. Only works in debug build.
          * Useful for noting who called what. Empty when in release build.
@@ -288,6 +262,7 @@ package com.fireflyLib.debug
             try
             {
                 var e:Error = new Error();
+
                 return e.getStackTrace();
             }
             catch(e:Error)
@@ -308,36 +283,37 @@ package com.fireflyLib.debug
         }
 		
 		//----------------
-        
-        public var enabled:Boolean = false;
 
-        protected var mOwner:Class;
+        protected var reporter:String;
         
-        public function Logger(owner:Class, defaultEnabled:Boolean = true)
+        public function Logger(reporter:String)
         {
-			mOwner = owner;
-            enabled = defaultEnabled;
+			this.reporter = reporter;
         }
 		
-		public function info(method:String, message:String = null):void
+		public function info(message:String, method:String = null):void
 		{
-			if(enabled) Logger.info(mOwner, method, message);
+			Logger.info(message, method, reporter);
 		}
 		
-        public function warn(method:String, message:String = null):void
+        public function warn(message:String, method:String = null):void
         {
-            if(enabled) Logger.warn(mOwner, method, message);
+            Logger.warn(message, method, reporter);
         }
+		
+		public function debug(message:String, method:String = null):void
+		{
+			Logger.debug(message, method, reporter);
+		}
         
-        public function error(method:String, message:String = null):void
+        public function error(message:String, method:String = null):void
         {
-            if(enabled) Logger.error(mOwner, method, message);
+            Logger.error(message, method, reporter);
         }
 
-        public function print(message:String):void
+        public function print(message:String, method:String = null):void
         {
-            if(enabled) Logger.print(mOwner, message);
+            Logger.print(message, method, reporter);
         }
-        
     }
 }

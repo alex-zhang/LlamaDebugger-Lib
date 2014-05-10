@@ -1,13 +1,13 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
     /**
      * Simply dump log activity via trace(). 
      */
     public class TraceAppender implements ILogAppender
     {
-        public function addLogMessage(level:String, loggerName:String, message:String):void
+        public function addLogMessage(logEntry:LogEntry):void
         {
-            trace("[" + level + " " + "]" + ": " + loggerName + " - " + message);
+            trace("[" + logEntry.logType + " " + "]" + ": " + logEntry.formatMessage());
         }
     }
 }

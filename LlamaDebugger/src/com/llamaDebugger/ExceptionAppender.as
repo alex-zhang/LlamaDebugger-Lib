@@ -1,25 +1,12 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
    public class ExceptionAppender implements ILogAppender
    {
-	   public function addLogMessage(level:String, loggerName:String, message:String):void
+	   public function addLogMessage(logEntry:LogEntry):void
 	   {
-		   if (level != "FATAL")
-			   return;
+		   if(logEntry.logType != Logger.ERROR) return;
 		   
-		   throw new Error(message);
+		   throw new Error(logEntry.message);
 	   }
-	   
-     /* public function addLogMessage(level:String, loggerName:String, message:String, arguments:Array):void
-      {
-         if (level != "FATAL")
-            return;
-         
-         var numberString:String = "";
-         if (errorNumber >= 0)
-            numberString = "Error #" + errorNumber;
-         
-         throw new Error(numberString + replace(message, arguments));
-      }*/
    }
 }

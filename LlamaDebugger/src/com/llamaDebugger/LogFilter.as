@@ -1,4 +1,4 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
 	public class LogFilter implements ILogFilter
 	{

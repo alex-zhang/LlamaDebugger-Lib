@@ -1,4 +1,4 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
     import flash.display.BitmapData;
     import flash.geom.Point;

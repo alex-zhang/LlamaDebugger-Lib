@@ -3,14 +3,14 @@ package com.llamaDebugger
     import com.fireflyLib.utils.GlobalPropertyBag;
     import com.fireflyLib.utils.StringUtil;
     
-    import flash.display.Stage;
     import flash.external.ExternalInterface;
-    
+
     /**
      * Process simple text mCommands from the user. Useful for debugging.
      */
     public class Console
     {
+		private static var logger:Logger = Logger.createLogger(Console);
         /**
          * The mCommands, indexed by name.
          */
@@ -49,25 +49,27 @@ package com.llamaDebugger
         {
             // Sanity checks.
             if (callback == null)
-                Logger.error(Console, "registerCommand", "Command '" + name + "' has no callback!");
+				logger.error("Command '" + name + "' has no callback!", "registerCommand");
             
             if (!name || name.length == 0)
-                Logger.error(Console, "registerCommand", "Command has no name!");
+				logger.error("Command has no name!", "registerCommand");
             
             if (name.indexOf(" ") != -1)
-                Logger.error(Console, "registerCommand", "Command '" + name + "' has a space in it, it will not work.");
-            
+				logger.error("Command '" + name + "' has a space in it, it will not work.", "registerCommand");
+
+			name = name.toLowerCase();
+			
             // Fill in description.
             var c:ConsoleCommand = new ConsoleCommand();
             c.name = name;
             c.callback = callback;
             c.docs = docs;
             
-            if (mCommands[name.toLowerCase()])
-                Logger.warn(Console, "registerCommand", "Replacing existing command '" + name + "'.");
-            
+            if (mCommands[name])
+				logger.warn("Replacing existing command '" + name + "'.", "registerCommand");
+
             // Set it.
-            mCommands[name.toLowerCase()] = c;
+            mCommands[name] = c;
             
             // Update the list.
             mCommandList.push(c);
@@ -118,7 +120,7 @@ package com.llamaDebugger
             
             if (!potentialCommand)
             {
-                Logger.warn(Console, "processLine", "No such command '" + args[0].toString() + "'!");
+				logger.warn("No such command '" + args[0].toString() + "'!", "processLine");
                 return;
             }
             
@@ -130,11 +132,13 @@ package com.llamaDebugger
             catch(e:Error)
             {
                 var errorStr:String = "Error: " + e.toString();
+				
                 if (showStackTrace)
                 {
                     errorStr += " - " + e.getStackTrace();
                 }
-                Logger.error(Console, args[0], errorStr);
+				
+				logger.error(errorStr, args[0]);
             }
         }
         
@@ -149,13 +153,13 @@ package com.llamaDebugger
                 // Get mCommands in alphabetical order.
                 ensuremCommandsOrdered();
                 
-                Logger.print(Console, "Keyboard shortcuts: ");
-                Logger.print(Console, "[SHIFT]-TAB - Cycle through autocompleted mCommands.");
-                Logger.print(Console, "PGUP/PGDN   - Page log view up/down a page.");
-                Logger.print(Console, "");
+				Logger.print("Keyboard shortcuts: ");
+				Logger.print("[SHIFT]-TAB - Cycle through autocompleted mCommands.");
+				Logger.print("PGUP/PGDN   - Page log view up/down a page.");
+				Logger.print("");
                 
                 // Display results.
-                Logger.print(Console, "mCommands:");
+				logger.print("Commands:");
                 for (var i:int = 0; i < mCommandList.length; i++)
                 {
                     var cc:ConsoleCommand = mCommandList[i] as ConsoleCommand;
@@ -164,50 +168,47 @@ package com.llamaDebugger
                     if (prefix && prefix.length > 0 && cc.name.substr(0, prefix.length) != prefix)
                         continue;
                     
-                    Logger.print(Console, "   " + cc.name + " - " + (cc.docs ? cc.docs : ""));
+					Logger.print("   " + cc.name + " - " + (cc.docs ? cc.docs : ""));
                 }
                 
                 // List input options.
             }, "[prefix] - List known mCommands, optionally filtering by prefix.");
-            
+
             registerCommand("fps", function():void
             {
                 if (!mStats)
                 {
                     mStats = new Stats();
-					Stage(GlobalPropertyBag.read("stage")).addChild(mStats);
-                    Logger.print(Console, "Enabled FPS display.");
+					GlobalPropertyBag.stage.addChild(mStats);
+					Logger.print("Enabled FPS display.");
                 }
                 else
                 {
-					Stage(GlobalPropertyBag.read("stage")).removeChild(mStats);
+					GlobalPropertyBag.stage.removeChild(mStats);
                     mStats = null;
-                    Logger.print(Console, "Disabled FPS display.");
+                    Logger.print("Disabled FPS display.");
                 }
             }, "Toggle an FPS/Memory usage indicator.");
             
             registerCommand("verbose", function(level:int):void
             {
                 Console.verbosity = level;
-                Logger.print(Console, "Verbosity set to " + level);
+                Logger.print("Verbosity set to " + level);
             }, "Set verbosity level of console output.");
             
             if(ExternalInterface.available)
             {
-                registerCommand("exit", _exitMethod,
-                    "Attempts to exit the application using ExternalInterface if avaliable");
-            }
-        }
-        
-        protected static function _exitMethod():void
-        {
-            if(ExternalInterface.available)
-            {
-                Logger.info(Console, "exit", ExternalInterface.call("window.close"));	
-            }
-            else
-            {
-                Logger.warn(Console, "exit", "ExternalInterface is not avaliable");
+                registerCommand("exit", function():void
+				{
+					if(ExternalInterface.available)
+					{
+						Logger.info("exit", ExternalInterface.call("window.close"));	
+					}
+					else
+					{
+						Logger.warn("exit", "ExternalInterface is not avaliable");
+					}
+				},"Attempts to exit the application using ExternalInterface if avaliable");
             }
         }
         
@@ -251,7 +252,7 @@ package com.llamaDebugger
          */
         public static function set hotKeyCode(value:uint):void
         {
-            Logger.print(Console, "Setting hotKeyCode to: " + value);
+            logger.print("Setting hotKeyCode to: " + value);
             mHotKeyCode = value;
         }
         

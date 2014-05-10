@@ -1,4 +1,4 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
     import com.fireflyLib.utils.GlobalPropertyBag;
     import com.fireflyLib.utils.MathUtil;
@@ -110,7 +110,7 @@ package com.fireflyLib.debug
             // Copy content.
             System.setClipboard(logString);
             
-            Logger.print(this, "Copied console contents to clipboard.");
+            Logger.print("Copied console contents to clipboard.");
         }
         
         /**
@@ -197,7 +197,7 @@ package com.fireflyLib.debug
                 if(mInput.text.length <= 0)
 				{
 					// display a blank line
-					addLogMessage("CMD", ">", mInput.text);
+					addLogMessage(new LogEntry(Logger.CMD, "> " + mInput.text));
 					return;
 				}
                 
@@ -382,7 +382,7 @@ package com.fireflyLib.debug
         
         protected function processCommand():void
         {
-            addLogMessage("CMD", ">", mInput.text);
+            addLogMessage(new LogEntry(Logger.CMD, "> " + mInput.text));
             Console.processLine(mInput.text);
             mConsoleHistory.push(mInput.text);
             mHistoryIndex = mConsoleHistory.length;
@@ -397,24 +397,22 @@ package com.fireflyLib.debug
             return Math.floor(roundedHeight / mGlyphCache.getLineHeight());
         }
         
-        public function addLogMessage(level:String, loggerName:String, message:String):void
+        public function addLogMessage(logEntry:LogEntry):void
         {
-            var color:String = LogColor.getColor(level);
+			var logType:String = logEntry.logType;
+            var color:uint = LogColor.getColor(logType);
             
             // Cut down on the logger level if verbosity requests.
-            if(Console.verbosity < 2)
-            {
-                var dotIdx:int = loggerName.lastIndexOf("::");
-                if(dotIdx != -1)
-                    loggerName = loggerName.substr(dotIdx + 2);
-            }
+			var reporter:String = logEntry.reporter;
             
             // Split message by newline and add to the list.
+			var message:String = logEntry.message || "";
             var messages:Array = message.split("\n");
+			
             for each (var msg:String in messages)
             {
-                var text:String = ((Console.verbosity > 0) ? level + ": " : "") + loggerName + " - " + msg;
-                mLogCache.push({"color": parseInt(color.substr(1), 16), "text": text});
+                var text:String = ((Console.verbosity > 0) ? logType + ": " : "") + (logEntry.reporter ? logEntry.reporter : "") + " - " + msg;
+                mLogCache.push({"color": color, "text": text});
             }
             
             mConsoleDirty = true;

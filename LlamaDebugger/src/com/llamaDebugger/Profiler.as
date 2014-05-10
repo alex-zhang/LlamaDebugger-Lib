@@ -1,7 +1,6 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
    import com.fireflyLib.utils.sprintf;
-   import com.fireflyLib.debug.Logger;
    
    import flash.utils.getTimer;
 
@@ -160,7 +159,7 @@ package com.fireflyLib.debug
          _wantReport = false;
          
          var header:String = sprintf( "%-" + nameFieldWidth + "s%-8s%-8s%-8s%-8s%-8s%-8s", "name", "Calls", "Total%", "NonSub%", "AvgMs", "MinMs", "MaxMs" );
-         Logger.print(Profiler, header);
+         Logger.print(header, null, "Profiler");
          report_R(_rootNode, 0);
       }
       
@@ -201,7 +200,7 @@ package com.fireflyLib.debug
              entry = sprintf( "%-" + (indent * indentAmount) + "s%-" + (nameFieldWidth - indent * indentAmount) + "s%-8s%-8s%-8s%-8s%-8s%-8s", "",
                  (hasKids ? "+" : "-") + pi.name, pi.activations, displayTime.toFixed(2), displayNonSubTime.toFixed(2), (Number(pi.totalTime) / Number(pi.activations)).toFixed(1), pi.minTime, pi.maxTime);             
          }
-         Logger.print(Profiler, entry);
+         Logger.print(entry, null, "Profiler");
          
          // Sort and draw our kids.
          var tmpArray:Array = new Array();

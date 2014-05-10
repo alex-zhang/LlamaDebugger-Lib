@@ -13,8 +13,6 @@ signing/
 .flexLibProperties
 .project
 .settings/
-bin-debug/
-bin-release/
 html-template/
 .metadata/
 *.iml

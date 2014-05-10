@@ -1,4 +1,4 @@
-package com.fireflyLib.debug
+package com.llamaDebugger
 {
     public class LogColor
     {
@@ -10,7 +10,7 @@ package com.fireflyLib.debug
         public static var TRACE:uint 	= 0xFFFFFF;
         public static var CMD:uint 	= 0x00DD00;
 
-        public static function getColor(logType:uint):uint
+        public static function getColor(logType:String):uint
         {
             switch(logType)
             {
