@@ -63,7 +63,7 @@ package com.llamaDebugger
 				Logger.error("Command '" + name + "' has a space in it, it will not work.", "registerCommand");
 			}
 
-			name = name.toLowerCase();
+//			name = name.toLowerCase();
 			
             // Fill in description.
             var c:ConsoleCommand = new ConsoleCommand();

@@ -156,7 +156,7 @@ package com.llamaDebugger
         
         protected function addListeners():void
         {
-            mInput.addEventListener(KeyboardEvent.KEY_DOWN, onInputKeyDownHandler, false, 1, true);
+            mInput.addEventListener(KeyboardEvent.KEY_DOWN, onInputKeyDownHandler);
 			
 			GlobalPropertyBag.stage.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			GlobalPropertyBag.stage.addEventListener(Event.RESIZE, stageResizeHandler);
@@ -292,7 +292,7 @@ package com.llamaDebugger
                     
                     if(mBottomLineIndex + getScreenHeightInLines() >= mLogCache.length)
 					{
-                        mBottomLineIndex = int.MAX_VALUE;                    
+                        mBottomLineIndex = int.MAX_VALUE;
 					}
                 }
             }
@@ -366,6 +366,8 @@ package com.llamaDebugger
 //                    stage.focus = mInput;
 //                    stage.stageFocusRect = oldfr;
 //                });
+				
+				event.preventDefault();
             }
             else if(event.keyCode == Console.hotKeyCode)
             {
