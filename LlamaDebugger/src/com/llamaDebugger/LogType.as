@@ -39,6 +39,7 @@ package com.llamaDebugger
 		{
 			this.color = color;
 			this.name = name;
+			this.verbosity = verbosity;
 		}
 	}
 }

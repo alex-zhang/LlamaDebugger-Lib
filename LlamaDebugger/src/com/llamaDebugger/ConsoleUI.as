@@ -20,6 +20,8 @@ package com.llamaDebugger
      */
     public class ConsoleUI extends Sprite implements ILogAppender
     {
+		public static const CONSOLEUI_FONT_NAME:String = "Verdana";
+		
         protected var mMessageQueue:Array = [];
         protected var mMaxLength:uint = 200000;
         protected var mTruncating:Boolean = false;
@@ -98,9 +100,10 @@ package com.llamaDebugger
 			textInput.condenseWhite = false;
 			
 			var textFormat:TextFormat = new TextFormat();
-			textFormat.font = "Consolas";
+			textFormat.font = CONSOLEUI_FONT_NAME;
 			textFormat.size = 12;
 			textFormat.color = 0xFFFFFF;
+			
 			textInput.setTextFormat(textFormat);
 			textInput.defaultTextFormat = textFormat;
 			
@@ -110,7 +113,7 @@ package com.llamaDebugger
 		protected function createGlyphCache():GlyphCache
 		{
 			var textFormat:TextFormat = new TextFormat();
-			textFormat.font = "Consolas";
+			textFormat.font = CONSOLEUI_FONT_NAME;
 			textFormat.size = 12;
 			textFormat.color = 0xFFFFFF;
 			
