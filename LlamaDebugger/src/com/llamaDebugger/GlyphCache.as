@@ -12,24 +12,25 @@ package com.llamaDebugger
      */
     public class GlyphCache
     {
-		protected const _textFormat:TextFormat = new TextFormat("Consolas", 12, 0xDDDDDD); 
-		protected const _textField:TextField = new TextField();
-		protected const _glyphCache:Array = [];
-		protected const _colorCache:Array = [];
+		protected const mHelperTextField:TextField = new TextField();
 		
-        function GlyphCache()
+		protected const mGlyphCache:Array = [];
+		protected const mColorCache:Array = [];
+		
+        public function GlyphCache(textFormat:TextFormat)
         {
             // Set up the text field.
-            _textField.setTextFormat(_textFormat);
-            _textField.defaultTextFormat = _textFormat;
+			mHelperTextField.setTextFormat(textFormat);
+            mHelperTextField.defaultTextFormat = textFormat;
         }
         
         public function drawLineToBitmap(line:String, x:int, y:int, color:uint, renderTarget:BitmapData):int
         {
             // Get the color bitmap.
-            if(!_colorCache[color])
-                _colorCache[color] = new BitmapData(128, 128, false, color);
-            const colorBitmap:BitmapData = _colorCache[color] as BitmapData;
+            if(!mColorCache[color])
+                mColorCache[color] = new BitmapData(128, 128, false, color);
+			
+            const colorBitmap:BitmapData = mColorCache[color] as BitmapData;
 
             // Keep track of current pos.
             var curPos:Point = new Point(x, y);
@@ -37,7 +38,7 @@ package com.llamaDebugger
             
             // Get each character.
             const glyphCount:int = line.length;
-            for(var i:int=0; i<glyphCount; i++)
+            for(var i:int = 0; i < glyphCount; i++)
             {
                 const char:int = line.charCodeAt(i);
                 
@@ -64,28 +65,28 @@ package com.llamaDebugger
         
         protected function getGlyph(charCode:int):Glyph
         {
-            if(_glyphCache[charCode] == null)
+            if(mGlyphCache[charCode] == null)
             {
                 // Generate glyph.
                 var newGlyph:Glyph = new Glyph();
-                _textField.text = String.fromCharCode(charCode);
+                mHelperTextField.text = String.fromCharCode(charCode);
 
-                newGlyph.bitmap = new BitmapData(_textField.textWidth + 1, 16, true, 0x0);
-                newGlyph.bitmap.draw(_textField);
+                newGlyph.bitmap = new BitmapData(mHelperTextField.textWidth + 1, 16, true, 0x0);
+                newGlyph.bitmap.draw(mHelperTextField);
                 newGlyph.rect = newGlyph.bitmap.rect;
                 
                 // Store it in cache.
-                _glyphCache[charCode ] = newGlyph;
+                mGlyphCache[charCode] = newGlyph;
             }
             
-            return _glyphCache[charCode] as Glyph;
+            return mGlyphCache[charCode] as Glyph;
         }
         
         public function getLineHeight():int
         {
             // Do some tall characters.
-            _textField.text = "HPI";
-            return _textField.getLineMetrics(0).height;
+            mHelperTextField.text = "HPI";
+            return mHelperTextField.getLineMetrics(0).height;
         }
     }
 }

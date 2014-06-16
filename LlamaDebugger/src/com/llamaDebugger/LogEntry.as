@@ -8,8 +8,35 @@ package com.llamaDebugger
     * 
     * @see Logger
     */
-	public class LogEntry
+	public final class LogEntry
    	{
+		private static var mLogEntriesPool:Vector.<LogEntry> = new Vector.<LogEntry>();
+
+		public static function create(logType:LogType, message:String):LogEntry
+		{
+			var logEntry:LogEntry;
+			
+			if(mLogEntriesPool.length > 0)
+			{
+				logEntry = mLogEntriesPool.pop();
+			}
+			else
+			{
+				logEntry = new LogEntry();
+			}
+			
+			logEntry.logType = logType;
+			logEntry.message = message;
+			
+			return logEntry;
+		}
+		
+		public static function recycle(logEntry:LogEntry):void
+		{
+			mLogEntriesPool.push(logEntry);
+		}
+		
+		
 	   /**
 		* The type of the message (message, warning, or error).
 		* 
@@ -17,55 +44,11 @@ package com.llamaDebugger
 		* @see #Logger.WARNING
 		* @see #Logger.MESSAGE
 		*/
-		public var logType:String;
+		public var logType:LogType;
 
-      /**
-       * The message that was printed.
-       */
+	  /**
+	   * The message that was printed.
+	   */
 		public var message:String = null;
-	  
-	  /**
-	   * The method the entry was printed from.
-	   */
-		public var method:String = null;
-	  
-	  /**
-	   * The object that printed the message to the log.
-	   */
-		public var reporter:String = null;
-	  
-	  /**
-	   * The depth of the message.
-	   * 
-	   * @see Logger#Push()
-	   */
-	  public var depth:int = 0;
-	  
-	  public function LogEntry(logType:String, message:String, method:String = null, reporter:String = null)
-	  {
-		  this.logType = logType;
-		  this.message = message;
-		  this.method = method;
-		  this.reporter = reporter;
-	  }
-	  
-	  public function formatMessage():String
-	  {
-		  return (reporter ? reporter + ": " : "") +
-			  (method ? method + "- " : "") +
-			  (message ? message : "");
-	  }
-      
-      /**
-       * The full message, formatted to include the reporter and method if they exist.
-       */
-      public function formatDeepMessage():String
-      {
-         var deep:String = "";
-         for (var i:int = 0; i < depth; i++)
-            deep += "   ";
-         
-         return deep + formatMessage();
-      }
    }
 }

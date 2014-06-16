@@ -9,42 +9,42 @@ package com.llamaDebugger
      * attached and detached from the main view when the defined hot key is pressed. The tilde (~) key 
 	 * is the default hot key.
 	 */	
-	public class UIAppender implements ILogAppender
+	public class ConsoleUILogAppender implements ILogAppender
 	{
-		protected var mLogViewer:LogViewer;
+		protected var mConsoleUI:ConsoleUI;
 	   
-		public function UIAppender()
+		public function ConsoleUILogAppender()
 		{
 			GlobalPropertyBag.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownHandler);
 			
-			mLogViewer = new LogViewer();
+			mConsoleUI = new ConsoleUI();
 		}
   
 		protected function onKeyDownHandler(event:KeyboardEvent):void
 		{
 			if(event.keyCode != Console.hotKeyCode) return;
 			 
-			if(mLogViewer)
+			if(mConsoleUI)
 			{
-				if (mLogViewer.parent)
+				if(mConsoleUI.parent)
 				{
-					mLogViewer.parent.removeChild(mLogViewer);
-					mLogViewer.deactivate();
+					mConsoleUI.parent.removeChild(mConsoleUI);
+					mConsoleUI.deactivate();
 				}
 				else
 				{
-					GlobalPropertyBag.stage.addChild(mLogViewer);
+					GlobalPropertyBag.stage.addChild(mConsoleUI);
 					
 					var char:String = String.fromCharCode(event.charCode);
-					mLogViewer.restrict = "^" + char.toUpperCase() + char.toLowerCase();	// disallow hotKey character
-					mLogViewer.activate();
+					mConsoleUI.restrict = "^" + char.toUpperCase() + char.toLowerCase();	// disallow hotKey character
+					mConsoleUI.activate();
 				}
 			}
 		}
 		
 		public function addLogMessage(logEntry:LogEntry):void
 		{
-			mLogViewer.addLogMessage(logEntry);
+			mConsoleUI.addLogMessage(logEntry);
 		}
 	}
 }

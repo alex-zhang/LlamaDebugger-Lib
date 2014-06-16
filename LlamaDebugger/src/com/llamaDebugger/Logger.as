@@ -1,7 +1,6 @@
 package com.llamaDebugger
 {
-	import com.fireflyLib.utils.TypeUtility;
-	
+	import com.fireflyLib.utils.StringUtil;
 
     /**
      * The Logger class provides mechanisms to print and listen for errors, warnings,
@@ -20,300 +19,161 @@ package com.llamaDebugger
      */
     public class Logger
     {
-		/**
-		 * type given to errors.
-		 * 
-		 * @see Logger#printError()
-		 */
-		public static const ERROR:String = "ERROR";
+		public static var logLevel:int = int.MAX_VALUE;//default
 		
-		/**
-		 * type given to warnings.
-		 * 
-		 * @see Logger#PrintWarning()
-		 */
-		public static const WARNING:String = "WARNING";
-		
-		/**
-		 * type given to debug messages.
-		 * 
-		 * @see Logger#PrintDebug()
-		 */
-		public static const DEBUG:String = "DEBUG";
-		
-		/**
-		 * type given to warnings.
-		 * 
-		 * @see Logger#PrintInfo()
-		 */
-		public static const INFO:String = "INFO";
-		
-		/**
-		 * type given to normal messages.
-		 */
-		public static const TRACE:String = "TRACE";
-		
-		/**
-		 * type given to sys inner messages.
-		 */
-		public static const CMD:String = "CMD";
-
-		protected static var listeners:Vector.<ILogAppender> = new Vector.<ILogAppender>();
-		protected static var filters:Vector.<ILogFilter> = new Vector.<ILogFilter>();
+		protected static var mLogAppenders:Vector.<ILogAppender> = new Vector.<ILogAppender>();
+		protected static var mLogFilters:Vector.<ILogFilter> = new Vector.<ILogFilter>();
 		//befor start up log record.
-        protected static var pendingEntries:Vector.<LogEntry> = new Vector.<LogEntry>();
-		
-		protected static var started:Boolean = false;
-		protected static var disabled:Boolean = false;
+        protected static var mPendingLogEntries:Vector.<LogEntry> = new Vector.<LogEntry>();
+
+		protected static var mStarted:Boolean = false;
+		protected static var mDisabled:Boolean = false;
         
+		public static function trace(message:String, ...args):void
+		{
+			if(mDisabled) return;
+			if(LogType.TRACE.verbosity > logLevel) return;
+			
+			//this way is 3 time slower than use unshif directlt. 
+			//var argsArr:Array = [message];
+			//argsArr.push.apply(null, args);
+			
+			args.unshift(message);
+			processEntry(LogEntry.create(LogType.TRACE, StringUtil.substitute.apply(null, args)));
+		}
+		
+		public static function debug(message:String, ...args):void
+		{
+			if(mDisabled) return;
+			if(LogType.DEBUG.verbosity > logLevel) return;
+			
+			args.unshift(message);
+			processEntry(LogEntry.create(LogType.DEBUG, StringUtil.substitute.apply(null, args)));
+		}
+		
+		public static function info(message:String, ...args):void
+		{
+			if(mDisabled) return;
+			if(LogType.INFO.verbosity > logLevel) return;
+			
+			args.unshift(message);
+			processEntry(LogEntry.create(LogType.INFO, StringUtil.substitute.apply(null, args)));
+		}
+		
+		public static function warn(message:String, ...args):void
+		{
+			if(mDisabled) return;
+			if(LogType.WARNING.verbosity > logLevel) return;
+			
+			args.unshift(message);
+			processEntry(LogEntry.create(LogType.WARNING, StringUtil.substitute.apply(null, args)));
+		}
+		
+		public static function error(message:String, ...args):void
+		{
+			if(mDisabled) return;
+			if(LogType.ERROR.verbosity > logLevel) return;
+			
+			args.unshift(message);
+			processEntry(LogEntry.create(LogType.ERROR, StringUtil.substitute.apply(null, args)));
+		}
+		
+		public static function customPrint(message:String, color:uint = 0xFFFFFF, ...args):void
+		{
+			if(mDisabled) return;
+
+			LogType.CUSTOM_PRINT.color = color;
+			args.unshift(message);
+			processEntry(LogEntry.create(LogType.CUSTOM_PRINT, StringUtil.substitute.apply(null, args)));
+		}
+		
         /**
          * Register a ILogAppender to be called back whenever log messages occur.
          */
-        public static function registerListener(listener:ILogAppender):void
+        public static function registerLogAppender(listener:ILogAppender):void
         {
-            listeners.push(listener);
+            mLogAppenders.push(listener);
         }
 		
-		public static function registerFilter(filter:ILogFilter):void
+		public static function registerLogFilter(filter:ILogFilter):void
 		{
-			filters.push(filter);
+			mLogFilters.push(filter);
 		}
 		
-		public static function createLogger(reporter:Object):Logger
-		{
-			return new Logger(TypeUtility.getSimpleClassName(reporter));
-		}
-        
         /**
          * Initialize the logging system.
          */
         public static function startup(configCallback:Function = null):void
         {
-			function defaultConfig():void 
+			if(configCallback == null)
 			{
-				// Put default listeners into the list.
-				registerListener(new TraceAppender());
-				registerListener(new UIAppender());
+				configCallback = function():void 
+				{
+					// Put default listeners into the list.
+					registerLogAppender(new TraceLogAppender());
+					registerLogAppender(new ConsoleUILogAppender());
+				};
 			}
-			
-			configCallback ||= defaultConfig;
 			
 			configCallback();
             
             // Process pending messages.
-            started = true;
+            mStarted = true;
 			
 			//befor startup there has log yet.
-			var n:int = pendingEntries.length;
+			var n:int = mPendingLogEntries.length;
             for(var i:int = 0; i < n; i++)
 			{
-                processEntry(pendingEntries[i]);
+                processEntry(mPendingLogEntries[i]);
 			}
             
             // Free up the pending entries memory.
-            pendingEntries.length = 0;
-            pendingEntries = null;
+            mPendingLogEntries.length = 0;
+            mPendingLogEntries = null;
         }
-        
+		
         /**
          * Call to destructively disable logging. This is useful when going
          * to production, when you want to remove all logging overhead.
          */
-        public static function disable():void
+		public static function disable():void
         {
-            pendingEntries = null;
-            started = false;
-            listeners = null;
-            disabled = true;
+            mPendingLogEntries = null;
+            mStarted = false;
+            mLogAppenders = null;
+            mDisabled = true;
         }
-        
-        protected static function processEntry(entry:LogEntry):void
-        {
-            // Early out if we are disabled.
-            if(disabled) return;
-            
-            // If we aren't started yet, just store it up for later processing.
-            if(!started)
-            {
-                pendingEntries.push(entry);
-                return;
-            }
+		
+		protected static function processEntry(entry:LogEntry):void
+		{
+			// Early out if we are disabled.
+			if(mDisabled) return;
+			
+			// If we aren't started yet, just store it up for later processing.
+			if(!mStarted)
+			{
+				mPendingLogEntries.push(entry);
+				return;
+			}
 			
 			//filter the log
 			var n:int = 0;
 			var i:int = 0;
 			
-			n = filters.length;
+			n = mLogFilters.length;
 			for(i = 0; i < n; i++)
 			{
-				if(!ILogFilter(filters[i]).test(entry)) return;
+				if(!mLogFilters[i].test(entry)) return;
 			}
 			
-            // Let all the listeners process it.
-			n = listeners.length;
-            for(i = 0; i< n; i++)
+			// Let all the listeners process it.
+			n = mLogAppenders.length;
+			for(i = 0; i< n; i++)
 			{
-				ILogAppender(listeners[i]).addLogMessage(entry);
-			}
-        }
-        
-		/**
-		 * Prints an info message to the log. Log entries created with this method
-		 * will have the INFO type.
-		 * 
-		 * @param reporter The object that reported the warning. This can be null.
-		 * @param method The name of the method that the warning was reported from.
-		 * @param message The warning to print to the log.
-		 */
-		public static function info(message:String, method:String = null, reporter:String = null):void
-		{
-            // Early out if we are disabled.
-            if(disabled) return;
-
-			processEntry(new LogEntry(INFO, message, method, reporter));
-		}
-		
-		/**
-		 * Prints a debug message to the log. Log entries created with this method
-		 * will have the DEBUG type.
-		 * 
-		 * @param reporter The object that reported the debug message. This can be null.
-		 * @param method The name of the method that the debug message was reported from.
-		 * @param message The debug message to print to the log.
-		 */
-		public static function debug(message:String, method:String = null, reporter:String = null):void
-		{
-            // Early out if we are disabled.
-            if(disabled) return;
-
-			processEntry(new LogEntry(DEBUG, message, method, reporter));
-		}
-		
-        /**
-         * Prints a warning message to the log. Log entries created with this method
-         * will have the WARNING type.
-         * 
-         * @param reporter The object that reported the warning. This can be null.
-         * @param method The name of the method that the warning was reported from.
-         * @param message The warning to print to the log.
-         */
-        public static function warn(message:String, method:String = null, reporter:String = null):void
-        {
-            // Early out if we are disabled.
-            if(disabled) return;
-
-            processEntry(new LogEntry(WARNING, message, method, reporter));
-        }
-        
-        /**
-         * Prints an error message to the log. Log entries created with this method
-         * will have the ERROR type.
-         * 
-         * @param reporter The object that reported the error. This can be null.
-         * @param method The name of the method that the error was reported from.
-         * @param message The error to print to the log.
-         */
-        public static function error(message:String, method:String = null, reporter:String = null):void
-        {
-            // Early out if we are disabled.
-            if(disabled) return;
-
-			processEntry(new LogEntry(ERROR, message, method, reporter));
-        }
-		
-		/**
-		 * Prints a general message to the log. Log entries created with this method
-		 * will have the MESSAGE type.
-		 * 
-		 * @param reporter The object that reported the message. This can be null.
-		 * @param message The message to print to the log.
-		 */
-		public static function print(message:String, method:String = null, reporter:String = null):void
-		{
-			// Early out if we are disabled.
-			if(disabled) return;
-			
-			processEntry(new LogEntry(TRACE, message, method, reporter));
-		}
-        
-        /**
-         * Prints a message to the log. Log enthries created with this method will have
-         * the type specified in the 'type' parameter.
-         * 
-         * @param reporter The object that reported the message. This can be null.
-         * @param method The name of the method that the error was reported from.
-         * @param message The message to print to the log.
-         * @param type The custom type to give the message.
-         */
-        public static function printCustom(logType:String, message:String, method:String = null, reporter:String = null):void
-        {
-            // Early out if we are disabled.
-            if(disabled) return;
-			
-			processEntry(new LogEntry(logType, message, method, reporter));
-        }
-		
-        /**
-         * Utility function to get the current callstack. Only works in debug build.
-         * Useful for noting who called what. Empty when in release build.
-         */
-        public static function getCallStack():String
-        {
-            try
-            {
-                var e:Error = new Error();
-
-                return e.getStackTrace();
-            }
-            catch(e:Error)
-            {
+				mLogAppenders[i].addLogMessage(entry);
 			}
 			
-            return "[no callstack available]";
-        }
-
-        public static function printHeader(report:*, message:String):void
-        {
-            print(report, message);
-        }
-        
-        public static function printFooter(report:*, message:String):void
-        {
-            print(report, message);
-        }
-		
-		//----------------
-
-        protected var reporter:String;
-        
-        public function Logger(reporter:String)
-        {
-			this.reporter = reporter;
-        }
-		
-		public function info(message:String, method:String = null):void
-		{
-			Logger.info(message, method, reporter);
+			LogEntry.recycle(entry);
 		}
-		
-        public function warn(message:String, method:String = null):void
-        {
-            Logger.warn(message, method, reporter);
-        }
-		
-		public function debug(message:String, method:String = null):void
-		{
-			Logger.debug(message, method, reporter);
-		}
-        
-        public function error(message:String, method:String = null):void
-        {
-            Logger.error(message, method, reporter);
-        }
-
-        public function print(message:String, method:String = null):void
-        {
-            Logger.print(message, method, reporter);
-        }
     }
 }
