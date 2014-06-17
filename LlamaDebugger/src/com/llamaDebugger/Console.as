@@ -123,7 +123,7 @@ package com.llamaDebugger
             // Look up the command.
             if(args.length == 0) return;
 			
-            var potentialCommand:ConsoleCommand = mCommands[args[0].toString().toLowerCase()];
+            var potentialCommand:ConsoleCommand = mCommands[args[0].toString()];
             
             if(!potentialCommand)
             {
