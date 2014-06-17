@@ -3,6 +3,7 @@ package com.llamaDebugger
     import flash.display.BitmapData;
     import flash.geom.Point;
     import flash.text.TextField;
+    import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
 
     /**
@@ -12,7 +13,7 @@ package com.llamaDebugger
      */
     public class GlyphCache
     {
-		protected const mHelperTextField:TextField = new TextField();
+		protected static const mHelperTextField:TextField = new TextField();mHelperTextField.autoSize = TextFieldAutoSize.LEFT;
 		
 		protected const mGlyphCache:Array = [];
 		protected const mColorCache:Array = [];
@@ -47,7 +48,7 @@ package com.llamaDebugger
                 {
                     // New line!
                     curPos.x = x;
-                    curPos.y += 16;
+                    curPos.y += getLineHeight();
                     linesConsumed++;
                     continue;
                 }
@@ -57,7 +58,7 @@ package com.llamaDebugger
                 renderTarget.copyPixels(colorBitmap, glyph.rect, curPos, glyph.bitmap, null, true);
                 
                 // Update position.
-                curPos.x += glyph.rect.width - 1;
+                curPos.x += glyph.rect.width;
             }
             
             return linesConsumed;
@@ -71,7 +72,7 @@ package com.llamaDebugger
                 var newGlyph:Glyph = new Glyph();
                 mHelperTextField.text = String.fromCharCode(charCode);
 
-                newGlyph.bitmap = new BitmapData(mHelperTextField.textWidth + 1, 16, true, 0x0);
+                newGlyph.bitmap = new BitmapData(mHelperTextField.textWidth + 1, mHelperTextField.textHeight + 2, true, 0x0);
                 newGlyph.bitmap.draw(mHelperTextField);
                 newGlyph.rect = newGlyph.bitmap.rect;
                 
@@ -86,7 +87,7 @@ package com.llamaDebugger
         {
             // Do some tall characters.
             mHelperTextField.text = "HPI";
-            return mHelperTextField.getLineMetrics(0).height;
+            return mHelperTextField.textHeight + 2;//getLineMetrics(0).height;
         }
     }
 }
