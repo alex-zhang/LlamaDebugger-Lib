@@ -1,6 +1,7 @@
 package com.llamaDebugger
 {
     import flash.display.BitmapData;
+    import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.text.TextField;
     import flash.text.TextFieldAutoSize;
@@ -14,6 +15,8 @@ package com.llamaDebugger
     public class GlyphCache
     {
 		protected static const mHelperTextField:TextField = new TextField();mHelperTextField.autoSize = TextFieldAutoSize.LEFT;
+//		mHelperTextField.border = true;
+		protected static const mHelperTextFieldMatrix:Matrix = new Matrix(1, 0, 0, 1, -2, -2);
 		
 		protected const mGlyphCache:Array = [];
 		protected const mColorCache:Array = [];
@@ -21,15 +24,14 @@ package com.llamaDebugger
         public function GlyphCache(textFormat:TextFormat)
         {
             // Set up the text field.
-			mHelperTextField.setTextFormat(textFormat);
-            mHelperTextField.defaultTextFormat = textFormat;
+			mHelperTextField.defaultTextFormat = textFormat;
         }
         
         public function drawLineToBitmap(line:String, x:int, y:int, color:uint, renderTarget:BitmapData):int
         {
             // Get the color bitmap.
             if(!mColorCache[color])
-                mColorCache[color] = new BitmapData(128, 128, false, color);
+                mColorCache[color] = new BitmapData(50, 50, false, color);
 			
             const colorBitmap:BitmapData = mColorCache[color] as BitmapData;
 
@@ -71,9 +73,9 @@ package com.llamaDebugger
                 // Generate glyph.
                 var newGlyph:Glyph = new Glyph();
                 mHelperTextField.text = String.fromCharCode(charCode);
-
-                newGlyph.bitmap = new BitmapData(mHelperTextField.textWidth + 1, mHelperTextField.textHeight + 2, true, 0x0);
-                newGlyph.bitmap.draw(mHelperTextField);
+                newGlyph.bitmap = new BitmapData(mHelperTextField.width - 4, mHelperTextField.height - 4, true, 0x0);
+                newGlyph.bitmap.draw(mHelperTextField, mHelperTextFieldMatrix);
+				
                 newGlyph.rect = newGlyph.bitmap.rect;
                 
                 // Store it in cache.
@@ -87,7 +89,7 @@ package com.llamaDebugger
         {
             // Do some tall characters.
             mHelperTextField.text = "HPI";
-            return mHelperTextField.textHeight + 2;//getLineMetrics(0).height;
+            return mHelperTextField.height - 4;
         }
     }
 }

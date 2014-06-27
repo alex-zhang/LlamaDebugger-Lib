@@ -98,7 +98,7 @@ package com.llamaDebugger
 			textInput.multiline = false;
 			textInput.wordWrap = false;
 			textInput.condenseWhite = false;
-			
+
 			var textFormat:TextFormat = new TextFormat();
 			textFormat.font = CONSOLEUI_FONT_NAME;
 			textFormat.size = 12;
