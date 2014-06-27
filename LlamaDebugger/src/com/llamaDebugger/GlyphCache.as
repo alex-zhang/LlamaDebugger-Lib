@@ -31,7 +31,7 @@ package com.llamaDebugger
         {
             // Get the color bitmap.
             if(!mColorCache[color])
-                mColorCache[color] = new BitmapData(50, 50, false, color);
+                mColorCache[color] = new BitmapData(20, 20, false, color);
 			
             const colorBitmap:BitmapData = mColorCache[color] as BitmapData;
 
