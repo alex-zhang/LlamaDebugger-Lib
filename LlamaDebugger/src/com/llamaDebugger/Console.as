@@ -2,11 +2,11 @@ package com.llamaDebugger
 {
     import com.fireflyLib.utils.GlobalPropertyBag;
     import com.fireflyLib.utils.StringUtil;
-    
-    import flash.desktop.NativeApplication;
+
     import flash.external.ExternalInterface;
     import flash.system.Capabilities;
     import flash.system.System;
+    import flash.utils.getDefinitionByName;
 
     /**
      * Process simple text mCommands from the user. Useful for debugging.
@@ -27,8 +27,6 @@ package com.llamaDebugger
         protected static var mHotKeyCode:uint = 192;//~
         
         protected static var mStats:Stats;
-        
-        protected static var mPrevTimescale:Number;
 		
         public static var showStackTrace:Boolean = false;
         
@@ -208,7 +206,7 @@ package com.llamaDebugger
 			{
 				if(Capabilities.playerType == "Desktop")
 				{
-					NativeApplication.nativeApplication.exit();
+                    getDefinitionByName("flash.desktop::NativeApplication").nativeApplication.exit();
 				}
 				else if(Capabilities.playerType == "StandAlone")
 				{
@@ -247,17 +245,17 @@ package com.llamaDebugger
             });
         }
         
-        protected static function generateIndent(indent:int):String
-        {
-            var str:String = "";
-            for(var i:int = 0; i < indent; i++)
-            {
-                // Add 2 spaces for indent
-                str += "  ";
-            }
-            
-            return str;
-        }
+//        protected static function generateIndent(indent:int):String
+//        {
+//            var str:String = "";
+//            for(var i:int = 0; i < indent; i++)
+//            {
+//                // Add 2 spaces for indent
+//                str += "  ";
+//            }
+//
+//            return str;
+//        }
         
         /**
          * The keycode to toggle the Console interface.
