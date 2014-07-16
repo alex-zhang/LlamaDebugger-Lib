@@ -35,7 +35,7 @@ package com.llamaDebugger
 		public var name:String;
 		public var verbosity:int = 0;
 		
-		public function LogType(name:String, color:uint, verbosity:uint)
+		public function LogType(name:String, color:uint, verbosity:int)
 		{
 			this.color = color;
 			this.name = name;
