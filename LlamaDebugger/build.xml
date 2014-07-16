@@ -10,7 +10,7 @@
     <target name="download_libs">
 
         <antcall target="download_file">
-            <param name="download_file_url" value="https://raw.githubusercontent.com/alex-zhang/Firefly-Lib/master/FireflyLib/bin/FireflyLib.swc"/>
+            <param name="download_file_url" value="https://raw.githubusercontent.com/alex-zhang/SWC-Libs-Repo/master/FireflyLib.swc"/>
         </antcall>
 
     </target>

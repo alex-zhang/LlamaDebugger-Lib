@@ -19,3 +19,4 @@ html-template/
 archive/
 *.lnk
 /LlamaDebugger/bin
+/LlamaDebugger/libs
